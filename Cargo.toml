@@ -1,7 +1,14 @@
 [package]
 name = "avroscript"
 version = "0.1.0"
+authors = ["Cameron Harris <cameronh63@gmail.com>"]
 edition = "2021"
+description = "A tool to parse and convert avro schema to arbitrary types."
+readme = "README.md"
+homepage = "https://github.com/ilikepi63/avroscript"
+repository = "https://github.com/ilikepi63/avroscript"
+keywords = ["cli", "avro"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -1,8 +1,7 @@
 #[macro_use]
 extern crate log;
 
-
-use clap::{Parser};
+use clap::Parser;
 use serde_json::Value;
 
 use crate::{
@@ -20,17 +19,16 @@ fn main() -> anyhow::Result<()> {
 
     if target.is_dir() {
         for entry in (target.read_dir()?).flatten() {
-    
-                let result = std::fs::read_to_string(entry.path())?;
+            let result = std::fs::read_to_string(entry.path())?;
 
-                let (name, body) = convert_str(&result)?;
+            let (name, body) = convert_str(&result)?;
 
-                let mut cloned_output = output.clone();
+            let mut cloned_output = output.clone();
 
-                cloned_output.push(name);
-                cloned_output.set_extension("ts");
+            cloned_output.push(name);
+            cloned_output.set_extension("ts");
 
-                std::fs::write(cloned_output, body)?;
+            std::fs::write(cloned_output, body)?;
         }
     } else {
         let result = std::fs::read_to_string(target)?;

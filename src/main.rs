@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate log;
-use std::path::PathBuf;
 
-use clap::{Arg, Parser};
+
+use clap::{Parser};
 use serde_json::Value;
 
 use crate::{
@@ -19,9 +19,7 @@ fn main() -> anyhow::Result<()> {
     let Args { mut output, target } = cli::Args::parse();
 
     if target.is_dir() {
-        for entry in target.read_dir()? {
-
-            if let Ok(entry) = entry {
+        for entry in (target.read_dir()?).flatten() {
     
                 let result = std::fs::read_to_string(entry.path())?;
 
@@ -33,7 +31,6 @@ fn main() -> anyhow::Result<()> {
                 cloned_output.set_extension("ts");
 
                 std::fs::write(cloned_output, body)?;
-            }
         }
     } else {
         let result = std::fs::read_to_string(target)?;

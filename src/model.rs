@@ -42,16 +42,16 @@ pub fn type_name_to_type(name: &str, value: &serde_json::Value) -> anyhow::Resul
             .map(|r| Type::Record(Box::new(r)))
             .map_err(|e| anyhow::format_err!(e)),
         "enum" => serde_json::from_value::<Enum>(value.clone())
-            .map(|e| Type::Enum(e))
+            .map(Type::Enum)
             .map_err(|e| anyhow::format_err!(e)),
         "array" => serde_json::from_value::<Array>(value.clone())
-            .map(|e| Type::Array(e))
+            .map(Type::Array)
             .map_err(|e| anyhow::format_err!(e)),
         "map" => serde_json::from_value::<Map>(value.clone())
             .map(|e| Type::Map(Box::new(e)))
             .map_err(|e| anyhow::format_err!(e)),
         "fixed" => serde_json::from_value::<Fixed>(value.clone())
-            .map(|e| Type::Fixed(e))
+            .map(Type::Fixed)
             .map_err(|e| anyhow::format_err!(e)),
 
         // primitives

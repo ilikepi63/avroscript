@@ -1,51 +1,55 @@
 #[macro_use]
 extern crate log;
+use std::path::PathBuf;
+
+use clap::{Arg, Parser};
 use serde_json::Value;
 
 use crate::{
+    cli::Args,
     model::Type,
     typescript_conversion::{convert_schema_to_typescript, TypeScriptDecls},
 };
 
+pub mod cli;
 pub mod model;
 pub mod typescript_conversion;
 
 fn main() -> anyhow::Result<()> {
-    pretty_env_logger::init();
+    let Args { mut output, target } = cli::Args::parse();
 
-    let src = r#"{
-        "type": "record",
-        "namespace": "ApAssocTestResult",
-        "name": "ApAssocTestResult",
-        "fields": [
-            {
-                "type": "double",
-                "name": "elapsed_time_seconds"
-              },
-              {
-                "type": [
-                  "null",
-                  "double"
-                ],
-                "name": "json_extra"
-              },
-              {
-                "type": {
-                  "type": "enum",
-                  "symbols": [
-                    "AP_ASSOC",
-                    "UNREACHABLE"
-                  ],
-                  "name": "AP_ASSOC"
-                },
-                "name": "test_type_code"
-              }
-            
-        ]
-      }"#;
+    if target.is_dir() {
+        for entry in target.read_dir()? {
 
-    info!("Converting!");
+            if let Ok(entry) = entry {
+    
+                let result = std::fs::read_to_string(entry.path())?;
 
+                let (name, body) = convert_str(&result)?;
+
+                let mut cloned_output = output.clone();
+
+                cloned_output.push(name);
+                cloned_output.set_extension("ts");
+
+                std::fs::write(cloned_output, body)?;
+            }
+        }
+    } else {
+        let result = std::fs::read_to_string(target)?;
+
+        let (name, body) = convert_str(&result)?;
+
+        output.push(name);
+        output.set_extension(".ts");
+
+        std::fs::write(output, body)?;
+    }
+
+    Ok(())
+}
+
+fn convert_str(src: &str) -> anyhow::Result<(String, String)> {
     let value: Value = serde_json::from_str(src)?;
 
     let mut decls = TypeScriptDecls {
@@ -59,7 +63,6 @@ fn main() -> anyhow::Result<()> {
 
     let interfaces = decls.interfaces.join("\n");
     let enumerations = decls.enumerations.join("\n");
-    let _ = std::fs::write("generated.ts", format!("{interfaces}\n\n{enumerations}"));
 
-    Ok(())
+    Ok((generated, format!("{interfaces}\n\n{enumerations}")))
 }

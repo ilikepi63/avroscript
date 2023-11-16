@@ -38,13 +38,27 @@ pub fn convert_schema_to_typescript(schema: Type, decls: &mut TypeScriptDecls) -
 }
 
 pub fn convert_record(v: Record, decls: &mut TypeScriptDecls) -> String {
+
     let Record { name, fields, .. } = v;
 
     let field_decls = fields
         .iter()
         .filter_map(|f| match Type::try_from(&f.type_name) {
             Ok(v) => {
+                // SHORT CIRCUIT FOR UNREACHABLE ENUMS
+                if let Type::Enum(e) = &v {
+                    if e.symbols.len() == 2 && e.symbols.iter().find(|e| e.as_str() == "UNREACHABLE").is_some() {
+                        if let Some(actual_value) = e.symbols.iter().find(|e| e.as_str() != "UNREACHABLE") {
+                            let name = &f.name;
+
+                            return Some(format!("\t{name}: \"{actual_value}\";\n"));
+                        };
+                    }
+                }
+                // END THIS
+
                 let typename = convert_schema_to_typescript(v, decls);
+
                 let name = &f.name;
 
                 Some(format!("\t{name}: {typename};\n"))

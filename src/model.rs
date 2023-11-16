@@ -73,22 +73,15 @@ impl TryFrom<&serde_json::Value> for Type {
     fn try_from(value: &serde_json::Value) -> Result<Self, Self::Error> {
         match value {
             serde_json::Value::Object(obj) => match obj.get("type").and_then(|v| v.as_str()) {
-                Some(vs) => {
-                    info!("Matching: {}", vs);
-                    type_name_to_type(vs, value)
-                }
+                Some(vs) => type_name_to_type(vs, value),
                 None => Err(anyhow!("Key `type` not found.")),
             },
-            serde_json::Value::Array(value) => {
-                info!("Iterating over:{:?}", value);
-                // This likely means it is a union
-                Ok(Type::Union(
-                    value
-                        .iter()
-                        .filter_map(|v| Type::try_from(v).ok())
-                        .collect(),
-                ))
-            }
+            serde_json::Value::Array(value) => Ok(Type::Union(
+                value
+                    .iter()
+                    .filter_map(|v| Type::try_from(v).ok())
+                    .collect(),
+            )),
             serde_json::Value::String(s) => primitive_type_name_to_type(s),
             serde_json::Value::Null | serde_json::Value::Bool(_) | serde_json::Value::Number(_) => {
                 Err(anyhow::anyhow!("Invalid type for a Avro Schema."))
@@ -125,7 +118,7 @@ pub struct Enum {
 pub struct Array {
     #[serde(alias = "type")]
     pub type_name: String,
-    pub items: Vec<serde_json::Value>,
+    pub items: serde_json::Value,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

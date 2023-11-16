@@ -1,4 +1,4 @@
-use crate::model::{Enum, Map, Record, Type};
+use crate::model::{Array, Enum, Map, Record, Type};
 
 #[derive(Debug)]
 pub struct TypeScriptDecls {
@@ -31,7 +31,7 @@ pub fn convert_schema_to_typescript(schema: Type, decls: &mut TypeScriptDecls) -
         Type::Null => "null".to_string(),
         Type::String => "string".to_string(),
         Type::Union(union) => convert_union(union, decls),
-        Type::Array(_) => todo!(),
+        Type::Array(arr) => convert_array(arr, decls),
         Type::Map(m) => convert_map(*m, decls),
         Type::Fixed(_) => todo!(),
     }
@@ -86,4 +86,12 @@ pub fn convert_map(m: Map, decls: &mut TypeScriptDecls) -> String {
     let name = convert_schema_to_typescript(value_type, decls);
 
     format!("{{ [index:string]: {name} }}")
+}
+
+pub fn convert_array(arr: Array, decls: &mut TypeScriptDecls) -> String {
+    let value_type = Type::try_from(&arr.items).unwrap_or(Type::Null);
+
+    let name = convert_schema_to_typescript(value_type, decls);
+
+    format!("{name}[]")
 }

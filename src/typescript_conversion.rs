@@ -30,6 +30,7 @@ pub fn convert_schema_to_typescript(schema: Type, decls: &mut TypeScriptDecls) -
         Type::Double | Type::Float | Type::Int | Type::Long => "number".to_string(),
         Type::Null => "null".to_string(),
         Type::String => "string".to_string(),
+        Type::Named(name) => name,
         Type::Union(union) => convert_union(union, decls),
         Type::Array(arr) => convert_array(arr, decls),
         Type::Map(m) => convert_map(*m, decls),
@@ -41,10 +42,12 @@ pub fn convert_record(v: Record, decls: &mut TypeScriptDecls) -> String {
 
     let Record { name, fields, .. } = v;
 
+
     let field_decls = fields
         .iter()
         .filter_map(|f| match Type::try_from(&f.type_name) {
             Ok(v) => {
+
                 // SHORT CIRCUIT FOR UNREACHABLE ENUMS
                 if let Type::Enum(e) = &v {
                     if e.symbols.len() == 2 && e.symbols.iter().find(|e| e.as_str() == "UNREACHABLE").is_some() {
@@ -63,7 +66,9 @@ pub fn convert_record(v: Record, decls: &mut TypeScriptDecls) -> String {
 
                 Some(format!("\t{name}: {typename};\n"))
             }
-            Err(_e) => None,
+            Err(e) => {
+                eprintln!("{:#?}", e);
+                None},
         })
         .collect::<String>();
 

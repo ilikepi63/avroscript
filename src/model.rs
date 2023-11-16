@@ -19,6 +19,7 @@ pub enum Type {
     Array(Array),
     Map(Box<Map>),
     Fixed(Fixed),
+    Named(String)
 }
 
 pub fn primitive_type_name_to_type(name: &str) -> anyhow::Result<Type> {
@@ -32,7 +33,7 @@ pub fn primitive_type_name_to_type(name: &str) -> anyhow::Result<Type> {
         "float" => Ok(Type::Float),
         "double" => Ok(Type::Double),
         "bytes" => Ok(Type::Bytes),
-        _ => Err(anyhow!("Could not find type in type declaraiont")),
+        _ => Ok(Type::Named(name.to_string())),
     }
 }
 
@@ -63,7 +64,9 @@ pub fn type_name_to_type(name: &str, value: &serde_json::Value) -> anyhow::Resul
         "float" => Ok(Type::Float),
         "double" => Ok(Type::Double),
         "bytes" => Ok(Type::Bytes),
-        _ => Err(anyhow!("Could not find type in type declaraiont")),
+        _ => {
+            eprintln!("There was this error here: {}", name);
+            Err(anyhow!("Could not find type in type declaraiont"))},
     }
 }
 
@@ -85,7 +88,7 @@ impl TryFrom<&serde_json::Value> for Type {
             serde_json::Value::String(s) => primitive_type_name_to_type(s),
             serde_json::Value::Null | serde_json::Value::Bool(_) | serde_json::Value::Number(_) => {
                 Err(anyhow::anyhow!("Invalid type for a Avro Schema."))
-            }
+            }   
         }
     }
 }
